@@ -205,7 +205,7 @@ fn transcribe(app: &tauri::AppHandle, req: &mut Request, url: &str) -> Res {
         let model = crate::stt_model(app).ok_or("Speech model is missing from this build")?;
         let bytes = body(req)?;
         let samples: Vec<f32> = bytes.chunks_exact(4).map(|b| f32::from_le_bytes([b[0], b[1], b[2], b[3]])).collect();
-        crate::whisper_text(&model, &samples, &lang)
+        crate::whisper_text(&model, &samples, &lang, "")
     };
     match run() {
         Ok(t) => text(200, t),

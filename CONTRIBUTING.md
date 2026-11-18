@@ -1,18 +1,18 @@
 # Contributing
 
-Thanks for helping. You don't need to write code to contribute: courses are plain YAML, and bug reports, translations and answers in [Discussions](https://github.com/ozerozdas/sprigo/discussions) all count.
+Thanks for helping. You don't need to write code to contribute: courses are plain YAML, and bug reports, translations and answers in [Discussions](https://github.com/Nestorservice/sprigo/discussions) all count.
 
 By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Your first contribution
 
-- Pick an issue labeled [`good first issue`](https://github.com/ozerozdas/sprigo/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22), or [`no-code`](https://github.com/ozerozdas/sprigo/issues?q=is%3Aissue+is%3Aopen+label%3Ano-code) if you'd rather not touch code.
+- Pick an issue labeled [`good first issue`](https://github.com/Nestorservice/sprigo/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22), or [`no-code`](https://github.com/Nestorservice/sprigo/issues?q=is%3Aissue+is%3Aopen+label%3Ano-code) if you'd rather not touch code.
 - Leave a comment that you're taking it, so nobody duplicates the work.
-- Unsure about something? Ask in the issue or in [Q&A](https://github.com/ozerozdas/sprigo/discussions/categories/q-a-help). Questions are welcome.
+- Unsure about something? Ask in the issue or in [Q&A](https://github.com/Nestorservice/sprigo/discussions/categories/q-a-help). Questions are welcome.
 
 ## Courses (no code needed)
 
-Each course is one YAML file in [`courses/`](courses/). It lists levels (CEFR) > units > steps, with each step's vocabulary, grammar patterns and activity types. The AI writes the actual exercises from that, so a course is mostly a well-ordered syllabus. The [Writing a Course](https://github.com/ozerozdas/sprigo/wiki/Writing-a-Course) wiki page walks through the format with an example.
+Each course is one YAML file in [`courses/`](courses/). It lists levels (CEFR) > units > steps, with each step's vocabulary, grammar patterns and activity types. The AI writes the actual exercises from that, so a course is mostly a well-ordered syllabus. The [Writing a Course](https://github.com/Nestorservice/sprigo/wiki/Writing-a-Course) wiki page walks through the format with an example.
 
 - Copy the shape of an existing file. [`courses/es.yml`](courses/es.yml) is a compact A1 example, [`courses/en.yml`](courses/en.yml) goes up to C2.
 - Titles and descriptions are in English; vocabulary and example patterns are in the target language.
@@ -25,7 +25,7 @@ Good first contributions: A2 for Spanish, French, German or Turkish, or A1 for a
 
 ### Setup
 
-Requires Node.js with pnpm, Rust, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/). For the AI, install [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) and pull a model (see [AI Model Setup](https://github.com/ozerozdas/sprigo/wiki/AI-Model-Setup) in the wiki).
+Requires Node.js with pnpm, Rust, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/). For the AI, install [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) and pull a model (see [AI Model Setup](https://github.com/Nestorservice/sprigo/wiki/AI-Model-Setup) in the wiki).
 
 ```bash
 pnpm install

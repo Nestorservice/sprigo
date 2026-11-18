@@ -21,7 +21,7 @@ export type TutorEvent =
   | { kind: "practice_stuck" }
   | { kind: "practice_done"; score: number; total: number };
 
-export type TutorMsg = { from: "tutor" | "me"; text: string; via: "voice" | "text"; cut?: boolean }; // cut: the learner spoke over it (SPR-17)
+export type TutorMsg = { from: "tutor" | "me"; text: string; via: "voice" | "text"; cut?: boolean; translation?: string }; // cut: the learner spoke over it (SPR-17)
 
 /** What the prompt needs; lessons.ts fills it from the character, the course and the current unit. */
 export type TutorCtx = { name: string; persona: string; target: string; native: string; level: string; unit: string; words: string[]; grammar: string[]; about: string[] };
@@ -164,4 +164,15 @@ export function sentences(text: string, final: boolean): string[] {
   for (let m; (m = re.exec(text)); start = m.index + m[0].length) out.push(text.slice(start, m.index + m[0].length).trim());
   if (final && text.slice(start).trim()) out.push(text.slice(start).trim());
   return out.filter(Boolean);
+}
+
+/** A long first sentence split at its first comma/semicolon/dash, so the voice starts before the sentence ends.
+ *  Returns null when the sentence is short or has no early break. */
+export function firstClause(sentence: string): [string, string] | null {
+  if (sentence.length < 45) return null;
+  const re = /[,;:—–]\s+/g;
+  for (let m; (m = re.exec(sentence)); ) {
+    if (m.index >= 25 && m.index < sentence.length - 12) return [sentence.slice(0, m.index + 1).trim(), sentence.slice(m.index + m[0].length).trim()];
+  }
+  return null;
 }

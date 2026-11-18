@@ -20,7 +20,16 @@ type Msg = { type: string; id?: number; p?: number; message?: string; voice?: st
 export const TTS_KEY = isCompanion ? "tts.phone" : "tts";
 export const ttsProvider = async (): Promise<TtsProvider> => {
   const v = await getSetting(TTS_KEY);
-  return ((v === "kokoro" || v === "elevenlabs" || v === "local") && !isCompanion) || v === "piper" ? v : "system";
+  if (v === "system" || v === "piper") return v;
+  if ((v === "kokoro" || v === "elevenlabs" || v === "local") && !isCompanion) return v;
+  return "piper"; // a fresh install: Piper sounds better than the system voice and falls back to it if its voice is missing
+};
+
+/** How translations are read aloud: never, only from the translation button, or after every tutor line. */
+export type TranslateMode = "off" | "tap" | "auto";
+export const translateMode = async (): Promise<TranslateMode> => {
+  const v = await getSetting("tts.translate");
+  return v === "off" || v === "auto" ? v : "tap";
 };
 
 // ponytail: the dev browser preview has no keychain, so it keeps the key in localStorage. Never used in the app.
@@ -39,7 +48,9 @@ const http = (isTauri ? tauriFetch : window.fetch.bind(window)) as typeof fetch;
 // ponytail: one voice per language and gender; Turkish has no female Piper voice, dfki is the closest
 const PIPER: Record<string, Record<"f" | "m", string>> = {
   en: { f: "en_US-hfc_female-medium", m: "en_US-hfc_male-medium" },
-  de: { f: "de_DE-kerstin-low", m: "de_DE-thorsten-medium" },
+  // German: kerstin/low and the other 130-id voices fail with the current phonemiser (ids up to 158).
+  // kerstin/medium is the current female voice; it comes from the upstream Piper repo (see patches/).
+  de: { f: "de_DE-kerstin-medium", m: "de_DE-thorsten_emotional-medium" },
   fr: { f: "fr_FR-siwis-medium", m: "fr_FR-tom-medium" },
   es: { f: "es_ES-sharvard-medium", m: "es_ES-davefx-medium" },
   tr: { f: "tr_TR-dfki-medium", m: "tr_TR-fahrettin-medium" },
@@ -140,9 +151,35 @@ let sources: AudioBufferSourceNode[] = [];
 let actx: AudioContext | undefined;
 let analyser: AnalyserNode | undefined; // local-engine audio passes through it so faces can read the loudness
 const out = (ctx: AudioContext) => {
-  if (!analyser) { analyser = ctx.createAnalyser(); analyser.fftSize = 1024; analyser.connect(ctx.destination); }
+  if (!analyser) {
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    // Engines return different levels; a gentle compressor keeps the tutor at one volume and stops peaks from clipping.
+    const compressor = ctx.createDynamicsCompressor();
+    compressor.threshold.value = -18; compressor.knee.value = 12; compressor.ratio.value = 3;
+    compressor.attack.value = 0.003; compressor.release.value = 0.25;
+    analyser.connect(compressor);
+    compressor.connect(ctx.destination);
+  }
   return analyser;
 };
+
+/** Waits until the speakers have gone quiet after a line, so the mic does not hear the tutor's tail as the learner's.
+ *  The system voice gives no audio to measure, so a short fixed tail is used there. */
+export async function whenOutputQuiet(quietMs = 200, maxMs = 1200): Promise<void> {
+  if (lastEngine === "system" || !analyser) { await new Promise((r) => setTimeout(r, 150)); return; }
+  const data = new Float32Array(analyser.fftSize);
+  const started = performance.now();
+  let quiet = 0;
+  while (performance.now() - started < maxMs) {
+    analyser.getFloatTimeDomainData(data);
+    let sum = 0;
+    for (const x of data) sum += x * x;
+    quiet = Math.sqrt(sum / data.length) < 0.01 ? quiet + 50 : 0;
+    if (quiet >= quietMs) return;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+}
 let next = 0; // when the queued sentences end, in AudioContext time
 let finish = () => {}; // resolves the current speak()
 const cache = new Map<string, Chunk[]>();
@@ -233,8 +270,9 @@ async function viaWorker(e: Engine, text: string, voice: string, mine: number, d
   if (hit) { remember(cache, key, hit); hit.forEach(play); end(); return; }
 
   const loading = load(e, e === "kokoro" ? "" : voice);
-  // A Piper voice not downloaded yet keeps downloading, but this line falls back to the system voice.
-  if (e === "piper" && !(await Promise.race([loading.then(() => true), new Promise((ok) => setTimeout(ok, 5000, false))]))) throw new Error(STILL_LOADING);
+  // A Piper voice not downloaded yet keeps downloading; this first line waits for it (the button is busy meanwhile)
+  // instead of falling back to the robotic system voice. After 30 s (offline or very slow) the fallback still applies.
+  if (e === "piper" && !(await Promise.race([loading.then(() => true), new Promise((ok) => setTimeout(ok, 30_000, false))]))) throw new Error(STILL_LOADING);
   if (mine !== seq) return;
   const got: Chunk[] = [];
   await new Promise<void>((started, failed) => {

@@ -11,7 +11,7 @@ overrides:
 
 patchedDependencies:
   '@mintplex-labs/piper-tts-web@1.0.5':
-    hash: db89da71347aeacd6cee83625cc13a6254c67eb2834a910dab9f186fa49b28eb
+    hash: d087f961f5641492271b81432071d0e7dde8da0b9711f3f47135a079b5d51611
     path: patches/@mintplex-labs__piper-tts-web@1.0.5.patch
 
 importers:
@@ -41,7 +41,7 @@ importers:
         version: 5.3.0
       '@mintplex-labs/piper-tts-web':
         specifier: ^1.0.5
-        version: 1.0.5(patch_hash=db89da71347aeacd6cee83625cc13a6254c67eb2834a910dab9f186fa49b28eb)(onnxruntime-web@1.18.0)
+        version: 1.0.5(patch_hash=d087f961f5641492271b81432071d0e7dde8da0b9711f3f47135a079b5d51611)(onnxruntime-web@1.18.0)
       '@tauri-apps/api':
         specifier: ^2
         version: 2.12.4
@@ -1256,7 +1256,7 @@ snapshots:
     dependencies:
       minipass: 7.1.3
 
-  '@mintplex-labs/piper-tts-web@1.0.5(patch_hash=db89da71347aeacd6cee83625cc13a6254c67eb2834a910dab9f186fa49b28eb)(onnxruntime-web@1.18.0)':
+  '@mintplex-labs/piper-tts-web@1.0.5(patch_hash=d087f961f5641492271b81432071d0e7dde8da0b9711f3f47135a079b5d51611)(onnxruntime-web@1.18.0)':
     dependencies:
       onnxruntime-web: 1.18.0
 

@@ -6,7 +6,7 @@ import { getSetting, isTauri, listProfiles, setSetting } from "./db";
 import { useApp } from "./store";
 import { cleanNotes } from "./releaseNotes";
 
-const REPO = "ozerozdas/sprigo";
+const REPO = "Nestorservice/sprigo";
 export const betaOn = async () => (await getSetting("update.beta")) === "1";
 
 /** The newer release, or null (also offline, in the browser preview, or before the first release exists).

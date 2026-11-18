@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Courses are YAML files in [`courses/`](https://github.com/ozerozdas/sprigo/tree/master/courses) and need no code. If you'd like to write it yourself, say so below; [CONTRIBUTING.md](https://github.com/ozerozdas/sprigo/blob/master/CONTRIBUTING.md#courses-no-code-needed) explains the format.
+        Courses are YAML files in [`courses/`](https://github.com/Nestorservice/sprigo/tree/master/courses) and need no code. If you'd like to write it yourself, say so below; [CONTRIBUTING.md](https://github.com/Nestorservice/sprigo/blob/master/CONTRIBUTING.md#courses-no-code-needed) explains the format.
   - type: dropdown
     id: kind
     attributes:

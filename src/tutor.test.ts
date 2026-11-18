@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { CourseLevel } from "./course.ts";
-import { currentUnit, describeEvent, filler, HISTORY_IN_PROMPT, isNoise, looseTutor, mergeInput, partialSay, sentences, silenceDelay, tutorPrompt, tutorSystem, type TutorMsg, type TutorReply } from "./tutor.ts";
+import { currentUnit, describeEvent, filler, firstClause, HISTORY_IN_PROMPT, isNoise, looseTutor, mergeInput, partialSay, sentences, silenceDelay, tutorPrompt, tutorSystem, type TutorMsg, type TutorReply } from "./tutor.ts";
 
 const ctx = { name: "Mia", persona: "Cheerful barista.", target: "English", native: "Turkish", level: "A2", unit: "Food", words: ["apple", "bread"], grammar: ["I like + noun"], about: [] as string[] };
 
@@ -98,6 +98,14 @@ test("partialSay reads the say string as it streams, escapes included", () => {
   assert.deepEqual(partialSay('{"say":"Caf\\u00'), { text: "Caf", closed: false }); // half an escape waits
   assert.deepEqual(partialSay('{"say":"a\\'), { text: "a", closed: false });
   assert.deepEqual(partialSay('{"act'), { text: "", closed: false });
+});
+
+test("firstClause starts a long first sentence early, and leaves short ones alone", () => {
+  assert.equal(firstClause("Short, and fine."), null);
+  const parts = firstClause("When you get to the station, take the second street on the left and walk to the end.")!;
+  assert.equal(parts[0], "When you get to the station,");
+  assert.ok(parts[1].startsWith("take the second street"));
+  assert.equal(firstClause("This sentence has no early break at all and keeps going for a while without punctuation"), null);
 });
 
 test("sentences keeps the unfinished tail until the reply is final", () => {

@@ -1,7 +1,7 @@
 # Spaced repetition with FSRS (#20)
 
 Date: 2026-10-16
-Issue: https://github.com/ozerozdas/sprigo/issues/20
+Issue: https://github.com/Nestorservice/sprigo/issues/20
 
 ## Goal
 

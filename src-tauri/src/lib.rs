@@ -23,7 +23,7 @@ fn list_user_courses(app: tauri::AppHandle) -> Result<Vec<(String, String)>, Str
 /// Beta channel (#41): the updater's JS `check()` can't change endpoints, so beta testers check here.
 /// The `updater-beta` release holds the latest.json of the newest published release, pre-releases included
 /// (.github/workflows/channel.yml). Same metadata as the plugin's own `check`, so `new Update(meta)` installs it.
-const BETA_ENDPOINT: &str = "https://github.com/ozerozdas/sprigo/releases/download/updater-beta/latest.json";
+const BETA_ENDPOINT: &str = "https://github.com/Nestorservice/sprigo/releases/download/updater-beta/latest.json";
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -170,16 +170,18 @@ fn stt_ready(app: tauri::AppHandle) -> bool {
     stt_model(&app).is_some()
 }
 
-/// `samples`: mono f32 PCM at 16 kHz; `lang`: ISO 639-1 of the course. Runs off the main thread.
+/// `samples`: mono f32 PCM at 16 kHz; `lang`: ISO 639-1 of the course; `hints`: current unit words,
+/// used as Whisper's initial prompt so the words being taught are heard as words and not lookalikes.
 #[tauri::command]
-async fn transcribe(app: tauri::AppHandle, samples: Vec<f32>, lang: String) -> Result<String, String> {
+async fn transcribe(app: tauri::AppHandle, samples: Vec<f32>, lang: String, hints: Option<Vec<String>>) -> Result<String, String> {
     let model = stt_model(&app).ok_or("Speech model is missing from this build")?;
-    tauri::async_runtime::spawn_blocking(move || whisper_text(&model, &samples, &lang))
+    let prompt = hints.unwrap_or_default().join(", ");
+    tauri::async_runtime::spawn_blocking(move || whisper_text(&model, &samples, &lang, &prompt))
         .await
         .map_err(|e| e.to_string())?
 }
 
-fn whisper_text(model: &std::path::Path, samples: &[f32], lang: &str) -> Result<String, String> {
+fn whisper_text(model: &std::path::Path, samples: &[f32], lang: &str, prompt: &str) -> Result<String, String> {
     // ponytail: one global lock, recordings are short and one learner speaks at a time
     let mut guard = STT.lock().map_err(|e| e.to_string())?;
     if guard.as_ref().map_or(true, |(p, _)| p != model) { // first use, or another model was picked
@@ -195,7 +197,8 @@ fn whisper_text(model: &std::path::Path, samples: &[f32], lang: &str) -> Result<
     params.set_print_special(false);
     params.set_print_timestamps(false);
     params.set_no_context(true);
-    params.set_single_segment(true);
+    params.set_single_segment(false); // a long turn stays whole instead of being cut at the first segment
+    if !prompt.trim().is_empty() { params.set_initial_prompt(prompt); }
     state.full(params, samples).map_err(|e| e.to_string())?;
     let text: String = state.as_iter().map(|s| s.to_string()).collect();
     Ok(text.trim().to_string())
@@ -215,7 +218,7 @@ mod tests {
         let pcm = &bytes[4096..];
         let samples: Vec<f32> = pcm.chunks_exact(2).map(|b| i16::from_le_bytes([b[0], b[1]]) as f32 / 32768.0).collect();
         let model = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(super::STT_MODEL);
-        let text = super::whisper_text(&model, &samples, lang).unwrap().to_lowercase();
+        let text = super::whisper_text(&model, &samples, lang, "").unwrap().to_lowercase();
         super::release_stt();
         println!("heard: {text}");
         text

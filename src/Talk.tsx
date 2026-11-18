@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "./icons";
 import { useApp } from "./store";
 import { sfx, useStartLesson } from "./Lesson";
-import { onTtsFallback, prewarm, resetTtsNotice, speak, speakingWith, stopSpeaking } from "./tts";
+import { onTtsFallback, prewarm, resetTtsNotice, speak, speakingWith, stopSpeaking, translateMode, SPEED } from "./tts";
 import { MicButton } from "./Mic";
 import { Face, type FaceState } from "./face/Face";
 import { CHARACTERS, CHAT_MAX_TURNS as CHAT_TURNS, CHAT_MIN_TURNS, FREE_GOAL, type Talk } from "./characters";
@@ -155,9 +155,15 @@ export function Story({ level, unit: unitId }: { level: Cefr; unit: string }) {
   const lastLine = cur?.line ?? 0;
 
   useEffect(() => {
-    if (story && cur && cur.q === undefined) speak(story.lines[cur.line].text, lang);
+    if (!story || !cur || cur.q !== undefined) return;
+    const line = story.lines[cur.line];
+    let live = true;
+    void speak(line.text, lang).then(async () => {
+      if (live && line.translation && (await translateMode()) === "auto") await speak(line.translation, profile?.native_lang ?? "en");
+    });
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [p, story]);
+    return () => { live = false; };
+  }, [p, story, profile?.native_lang]);
 
   const next = () => {
     if (p + 1 < seq.length) { setP(p + 1); setSel(null); setChecked(false); return; }
@@ -207,11 +213,19 @@ export function Story({ level, unit: unitId }: { level: Cefr; unit: string }) {
       <h2 className="ex-title" lang={lang}>{story.title}</h2>
       <div className="chat">
         {story.lines.slice(0, lastLine + 1).map((l, li) => (
-          <SpeakButton key={li} className="bubble story-line" text={l.text} lang={lang} onClick={() => setShown((s) => new Set(s).add(li))}>
-            <b className="small" style={{ color: "var(--blue)" }}>{l.speaker}</b>
-            <span><Words text={l.text} lang={lang} /></span>
-            {shown.has(li) && <small>{l.translation}</small>}
-          </SpeakButton>
+          <div key={li} className="story-line-row">
+            <SpeakButton className="bubble story-line" text={l.text} lang={lang} onClick={() => setShown((s) => new Set(s).add(li))}>
+              <b className="small" style={{ color: "var(--blue)" }}>{l.speaker}</b>
+              <span><Words text={l.text} lang={lang} /></span>
+              {shown.has(li) && <small>{l.translation}</small>}
+            </SpeakButton>
+            <span className="story-tools">
+              <button className="icon-btn" aria-label={t("voice.replaySlow")} data-tip={t("voice.replaySlow")}
+                onClick={() => speak(l.text, lang, undefined, undefined, SPEED.slow)}><Icon name="refresh" /></button>
+              {l.translation && <button className="icon-btn" aria-label={t("voice.playTranslation")} data-tip={t("voice.playTranslation")}
+                onClick={() => { setShown((s) => new Set(s).add(li)); void speak(l.translation, profile?.native_lang ?? "en"); }}><Icon name="headphones" /></button>}
+            </span>
+          </div>
         ))}
       </div>
       {q && <div style={{ marginTop: 20 }}>
@@ -315,9 +329,21 @@ export function Chat({ talk }: { talk: Talk }) {
   const lang = course?.iso ?? "en";
   const [voicing, setVoicing] = useState<number | null>(null); // AI message being spoken (or its voice being made)
   const [engine, setEngine] = useState<string | null>(null); // which voice engine is speaking it, once audio starts
-  const say = (text: string, i: number) => {
+  const speakSeq = useRef(0); // a newer line (or leaving) cancels the previous line's pending translation
+  const ending = useRef(false); // finish once: double click, Enter
+  const say = (text: string, i: number, translation?: string) => {
+    const mine = ++speakSeq.current;
     setVoicing(i); setEngine(null);
-    speak(text, lang, { gender: ch.gender, kokoro: ch.kokoroVoice }, () => setEngine(speakingWith())).finally(() => setVoicing((v) => v === i ? null : v));
+    speak(text, lang, { gender: ch.gender, kokoro: ch.kokoroVoice }, () => setEngine(speakingWith()))
+      .then(async () => {
+        if (mine !== speakSeq.current || ending.current) return;
+        if (!translation || !profile) return;
+        const mode = await translateMode();
+        if (mode !== "auto" || mine !== speakSeq.current || ending.current) return;
+        await speak(translation, profile.native_lang);
+      })
+      .catch(() => {})
+      .finally(() => { if (mine === speakSeq.current) setVoicing((v) => (v === i ? null : v)); });
   };
   usePrewarm(lang, ch.gender);
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
@@ -331,7 +357,6 @@ export function Chat({ talk }: { talk: Talk }) {
   const [result, setResult] = useState<Result | null>(null);
   const [deb, setDeb] = useState<Debrief | null>(null);
   const [stepping, setStepping] = useState(false); // a failed debrief retries the debrief, not a turn
-  const ending = useRef(false); // finish once: double click, Enter
   const total = drill ? drill.minutes * 60 : 0;
   const [left, setLeft] = useState(total); // drill: seconds of talk left
   const [plan, setPlan] = useState(drill?.planningSec ?? 0); // drill: planning seconds left; talk starts at 0
@@ -355,6 +380,7 @@ export function Chat({ talk }: { talk: Talk }) {
   const { quit, askQuit } = useQuit(mine > 0 && !result);
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [msgs, busy]);
+  useEffect(() => () => { speakSeq.current++; }, []); // leaving the chat cancels a pending translation
 
   const turn = async (history: ChatMsg[]) => {
     if (!course || !enrollment || !profile) return;
@@ -364,7 +390,7 @@ export function Chat({ talk }: { talk: Talk }) {
         const r = await rehearseTurn({ course, level: enrollment.level, native: profile.native_lang }, rehearse, history);
         if (ending.current) return; // the session ended while the reply was on its way (a drill's time ran out)
         setMsgs([...history, { from: "ai", text: r.reply, translation: r.translation }]);
-        say(r.reply, history.length);
+        say(r.reply, history.length, r.translation);
         return;
       }
       const r = await chatTurn({ course, level: enrollment.level, native: profile.native_lang, about: await about }, who, topic, history,
@@ -372,7 +398,7 @@ export function Chat({ talk }: { talk: Talk }) {
       if (ending.current) return;
       const fixed = history.map((m, i) => i === history.length - 1 && m.from === "me" ? { ...m, correction: r.correction.trim() || undefined } : m);
       setMsgs([...fixed, { from: "ai", text: r.reply, translation: r.translation }]);
-      say(r.reply, fixed.length);
+      say(r.reply, fixed.length, r.translation);
       // The prompt holds the goal back too; this guards models that wrap up early anyway.
       if (r.goal_reached && history.filter((m) => m.from === "me").length >= CHAT_MIN_TURNS) setGoal(true);
     } catch (e) { setErr((e as Error).message); setMsgs(history); }
@@ -477,10 +503,18 @@ export function Chat({ talk }: { talk: Talk }) {
       {drill?.named && <p className="muted small" style={{ textAlign: "center", marginBottom: 12 }}>{t("practice.namedStructure", { structure: drill.named })}</p>}
       <div className="chat">
         {msgs.map((m, i) => m.from === "ai" ? (
-          <button key={i} className="bubble" lang={lang} aria-busy={voicing === i} onClick={() => { say(m.text, i); setOpen((s) => new Set(s).add(i)); }}>
-            <span>{m.text}</span>{open.has(i) && <small>{m.translation}</small>}
-            {voicing === i && <small className="voicing gen-pulse" role="status"><Icon name="headphones" /> {engine ? t("ai.speakingWith", { engine: t(`voice.engine.${engine}`) }) : t("ai.speaking")}</small>}
-          </button>
+          <div key={i} className="bubble-wrap">
+            <button className="bubble" lang={lang} aria-busy={voicing === i} onClick={() => { say(m.text, i, m.translation); setOpen((s) => new Set(s).add(i)); }}>
+              <span>{m.text}</span>{open.has(i) && <small>{m.translation}</small>}
+              {voicing === i && <small className="voicing gen-pulse" role="status"><Icon name="headphones" /> {engine ? t("ai.speakingWith", { engine: t(`voice.engine.${engine}`) }) : t("ai.speaking")}</small>}
+            </button>
+            <span className="bubble-tools">
+              <button className="icon-btn" aria-label={t("voice.replaySlow")} data-tip={t("voice.replaySlow")}
+                onClick={() => speak(m.text, lang, { gender: ch.gender, kokoro: ch.kokoroVoice }, undefined, SPEED.slow)}><Icon name="refresh" /></button>
+              {m.translation && <button className="icon-btn" aria-label={t("voice.playTranslation")} data-tip={t("voice.playTranslation")}
+                onClick={() => { setOpen((s) => new Set(s).add(i)); void speak(m.translation!, profile?.native_lang ?? "en"); }}><Icon name="headphones" /></button>}
+            </span>
+          </div>
         ) : (
           <div key={i} className="bubble me" lang={lang}>
             <span>{m.text}</span>{m.correction && <small className="fix"><Icon name="spark" /> {m.correction}</small>}

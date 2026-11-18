@@ -6,7 +6,7 @@ Only the latest release gets fixes. The app updates itself, so please check you'
 
 ## Reporting a vulnerability
 
-Please report privately through [GitHub's private vulnerability reporting](https://github.com/ozerozdas/sprigo/security/advisories/new), not in a public issue or discussion.
+Please report privately through [GitHub's private vulnerability reporting](https://github.com/Nestorservice/sprigo/security/advisories/new), not in a public issue or discussion.
 
 Include what's affected, how to reproduce it and the version you tested. You'll get a reply within a week. Once a fix is released, the advisory is published with credit to you unless you'd rather stay anonymous.
 

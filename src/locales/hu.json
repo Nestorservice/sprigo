@@ -687,6 +687,8 @@
     "ollamaInfo": "A modelleket ezen a Macen futtatja, így a leckéid offline és privátak maradnak. Az Ollama alkalmazásnak telepítve és megnyitva kell lennie; a felhőmodelljei (a :cloud végű nevek) is működnek.",
     "lmstudioGood": "Ingyenes és helyi; a modelleket vizuális alkalmazásban kezelheted.",
     "lmstudioInfo": "Az LM Studio helyi szerveréhez kapcsolódik. Előbb tölts be egy modellt az LM Studióban, és indítsd el a szerverét.",
+    "deepseekGood": "Gyors felhőmodellek, a legtöbbnél jóval olcsóbban; API-kulcs kell.",
+    "deepseekInfo": "A DeepSeek modellek írják a leckéidet és a beszélgetéseidet. A kérések a DeepSeekhez kerülnek, és az API-kulcsodon a használat szerint számlázzák. A deepseek-chat a gyors választás; a deepseek-reasoner tovább gondolkodik, mielőtt válaszol.",
     "openaiGood": "Gyors, erős felhőmodellek; fizetős API-kulcs kell hozzájuk.",
     "openaiInfo": "A GPT-modellek írják a leckéidet és a beszélgetéseidet. A kérések az OpenAI-hoz kerülnek, a díjat a használat alapján számolják fel.",
     "anthropicGood": "Claude-modellek; természetes beszélgetés és világos magyarázatok.",
@@ -725,7 +727,7 @@
     "install": "Frissítés és újraindítás",
     "later": "Később",
     "downloading": "Letöltés… {{pct}}%",
-    "madeBy": "Készítette: Mehmet Özer Özdaş ·",
+    "madeBy": "Készítette: Toukea Pessong Nestor Corneille ·",
     "whatsNew": "Újdonságok – Sprigo {{version}}",
     "gotIt": "Értem"
   },
@@ -791,6 +793,18 @@
     "localModel": "Modell",
     "localVoice": "Hang",
     "speed": "Sebesség",
+    "translate": "Beszélt fordítás",
+    "translateDesc": "A tanár mondata után felolvassa a fordítását a saját nyelveden. Koppintásra: csak a fordítás gomb megnyomásakor.",
+    "translate_off": "Ki",
+    "translate_tap": "Koppintásra",
+    "translate_auto": "Mindig",
+    "playTranslation": "Fordítás meghallgatása",
+    "replaySlow": "Lassú ismétlés",
+    "pause": "Szünet a tanár válasza előtt",
+    "pauseDesc": "Mennyit vár a Sprigo, miután abbahagytad a beszédet. Növeld, ha elvágja a mondataidat.",
+    "pauseShort": "Rövid",
+    "pauseNormal": "Normál",
+    "pauseLong": "Hosszú",
     "accent": "Akcentus",
     "accent_en-US": "Amerikai",
     "accent_en-GB": "Brit"
@@ -986,7 +1000,7 @@
     "topics": {
       "ai": {
         "q": "Hogyan állítsam be az MI-t?",
-        "a": "A Sprigónak nyelvi modell kell a leckék megírásához. A legegyszerűbb az Ollama: telepítsd, és nyisd meg a Sprigót; megtalálja az Ollamát, és felajánlja a qwen3:8b letöltését (kb. 5,2 GB). Az LM Studio is működik: indítsd el a helyi szerverét, és tölts be egy modellt.\nNincs helyi modelled? Használj felhőszolgáltatót (OpenAI, Anthropic, Gemini, OpenRouter) a saját API-kulcsoddal. A kulcsok a rendszer kulcstartójában maradnak.\nMódosítás: Beállítások → MI és hang → MI-szolgáltató."
+        "a": "A Sprigónak nyelvi modell kell a leckék megírásához. A legegyszerűbb az Ollama: telepítsd, és nyisd meg a Sprigót; megtalálja az Ollamát, és felajánlja a qwen3:8b letöltését (kb. 5,2 GB). Az LM Studio is működik: indítsd el a helyi szerverét, és tölts be egy modellt.\nNincs helyi modelled? Használj felhőszolgáltatót (OpenAI, Anthropic, Gemini, OpenRouter, DeepSeek) a saját API-kulcsoddal. A kulcsok a rendszer kulcstartójában maradnak.\nMódosítás: Beállítások → MI és hang → MI-szolgáltató."
       },
       "aiConnect": {
         "q": "„Nem található helyi modell” vagy „Nem sikerült kapcsolódni”",

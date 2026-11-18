@@ -2,7 +2,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Many answers are already in the [wiki](https://github.com/ozerozdas/sprigo/wiki), especially [Troubleshooting](https://github.com/ozerozdas/sprigo/wiki/Troubleshooting). If something is clearly broken, a [bug report](https://github.com/ozerozdas/sprigo/issues/new?template=bug.yml) is the better place.
+        Many answers are already in the [wiki](https://github.com/Nestorservice/sprigo/wiki), especially [Troubleshooting](https://github.com/Nestorservice/sprigo/wiki/Troubleshooting). If something is clearly broken, a [bug report](https://github.com/Nestorservice/sprigo/issues/new?template=bug.yml) is the better place.
   - type: textarea
     id: question
     attributes:

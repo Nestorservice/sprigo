@@ -1,4 +1,4 @@
-# Bumps the Homebrew cask (ozerozdas/homebrew-tap) when a release is published.
+# Bumps the Homebrew cask (Nestorservice/homebrew-tap) when a release is published.
 # Needs the HOMEBREW_TAP_TOKEN secret: a fine-grained token with Contents read/write on homebrew-tap.
 name: tap
 
@@ -24,7 +24,7 @@ jobs:
           arm=$(sha aarch64); intel=$(sha x64)
           [ -n "$arm" ] && [ -n "$intel" ] || { echo "dmg digests missing for $tag"; exit 1; }
 
-          git clone --depth 1 "https://x-access-token:$GH_TOKEN@github.com/ozerozdas/homebrew-tap.git" tap
+          git clone --depth 1 "https://x-access-token:$GH_TOKEN@github.com/Nestorservice/homebrew-tap.git" tap
           cd tap
           sed -i -E \
             -e "s/^  version \".*\"/  version \"$version\"/" \

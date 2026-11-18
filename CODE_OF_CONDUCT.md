@@ -28,7 +28,7 @@ This applies in all project spaces (issues, pull requests, discussions, the wiki
 
 ## Reporting
 
-Report unacceptable behavior to **ozer@ozdas.org**. Every report is reviewed and handled confidentially.
+Report unacceptable behavior to **@Nestorservice on GitHub** (https://github.com/Nestorservice). Every report is reviewed and handled confidentially.
 
 ## Enforcement
 

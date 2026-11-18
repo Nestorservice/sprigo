@@ -1,7 +1,7 @@
 # Automatic quality evaluation for AI-generated lessons (#21)
 
 Date: 2026-10-16
-Issue: https://github.com/ozerozdas/sprigo/issues/21
+Issue: https://github.com/Nestorservice/sprigo/issues/21
 
 ## Goal
 

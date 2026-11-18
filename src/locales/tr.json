@@ -681,6 +681,8 @@
     "ollamaInfo": "Modelleri bu Mac'te çalıştırır; derslerin çevrimdışı ve gizli kalır. Ollama uygulaması kurulu ve açık olmalı; bulut modelleri (adı :cloud ile bitenler) de çalışır.",
     "lmstudioGood": "Ücretsiz ve yerel; modelleri görsel bir uygulamada yönetirsin.",
     "lmstudioInfo": "LM Studio'nun yerel sunucusuna bağlanır. Önce LM Studio'da bir model yükleyip sunucuyu başlat.",
+    "deepseekGood": "Hızlı bulut modelleri, çoğundan çok daha uygun fiyatlı; API anahtarı gerekir.",
+    "deepseekInfo": "Derslerini ve sohbetlerini DeepSeek modelleri yazar. İstekler DeepSeek'e gider ve API anahtarında kullanıma göre ücretlendirilir. deepseek-chat hızlı seçenektir; deepseek-reasoner yanıtlamadan önce daha uzun düşünür.",
     "openaiGood": "Hızlı ve güçlü bulut modelleri; ücretli API anahtarı gerekir.",
     "openaiInfo": "Derslerini ve sohbetlerini GPT modelleri yazar. İstekler OpenAI'a gider, kullanıma göre ücretlendirilir.",
     "anthropicGood": "Claude modelleri; doğal sohbet ve anlaşılır açıklamalar.",
@@ -719,7 +721,7 @@
     "install": "Güncelle ve yeniden başlat",
     "later": "Sonra",
     "downloading": "İndiriliyor… %{{pct}}",
-    "madeBy": "Geliştiren: Mehmet Özer Özdaş ·",
+    "madeBy": "Geliştiren: Toukea Pessong Nestor Corneille ·",
     "whatsNew": "Sprigo {{version}} ile gelen yenilikler",
     "gotIt": "Anladım"
   },
@@ -785,6 +787,18 @@
     "localModel": "Model",
     "localVoice": "Ses",
     "speed": "Hız",
+    "translate": "Sesli çeviri",
+    "translateDesc": "Öğretmenin bir cümlesinden sonra çevirisini kendi dilinde okur. Dokununca: yalnızca çeviri düğmesine bastığında.",
+    "translate_off": "Kapalı",
+    "translate_tap": "Dokununca",
+    "translate_auto": "Her zaman",
+    "playTranslation": "Çeviriyi dinle",
+    "replaySlow": "Yavaş tekrar oynat",
+    "pause": "Öğretmen yanıtlamadan önce bekleme",
+    "pauseDesc": "Konuşmayı bitirdikten sonra Sprigo'nun ne kadar bekleyeceği. Cümlelerin kesiliyorsa artır.",
+    "pauseShort": "Kısa",
+    "pauseNormal": "Normal",
+    "pauseLong": "Uzun",
     "accent": "Aksan",
     "accent_en-US": "Amerikan",
     "accent_en-GB": "İngiliz"
@@ -980,7 +994,7 @@
     "topics": {
       "ai": {
         "q": "Yapay zekâyı nasıl kurarım?",
-        "a": "Sprigo dersleri yazmak için bir dil modeline ihtiyaç duyar. En kolayı Ollama: kur ve Sprigo'yu aç; Sprigo Ollama'yı bulur ve qwen3:8b modelini (yaklaşık 5,2 GB) indirmeyi önerir. LM Studio da olur: yerel sunucusunu başlatıp bir model yükle.\nYerel model çalıştıramıyor musun? Kendi API anahtarınla bir bulut sağlayıcı kullan (OpenAI, Anthropic, Gemini, OpenRouter). Anahtarlar sistemin anahtar zincirinde kalır.\nAyarlar → Yapay zekâ ve ses → Yapay zekâ sağlayıcısı'ndan değiştirebilirsin."
+        "a": "Sprigo dersleri yazmak için bir dil modeline ihtiyaç duyar. En kolayı Ollama: kur ve Sprigo'yu aç; Sprigo Ollama'yı bulur ve qwen3:8b modelini (yaklaşık 5,2 GB) indirmeyi önerir. LM Studio da olur: yerel sunucusunu başlatıp bir model yükle.\nYerel model çalıştıramıyor musun? Kendi API anahtarınla bir bulut sağlayıcı kullan (OpenAI, Anthropic, Gemini, OpenRouter, DeepSeek). Anahtarlar sistemin anahtar zincirinde kalır.\nAyarlar → Yapay zekâ ve ses → Yapay zekâ sağlayıcısı'ndan değiştirebilirsin."
       },
       "aiConnect": {
         "q": "“Yerel model bulunamadı” ya da “Bağlanılamadı”",

@@ -132,7 +132,7 @@ function PhoneApproveSheet({ url }: { url: string }) {
 }
 
 const OLLAMA_DOWNLOAD = "https://ollama.com/download";
-const AUTHOR_URL = "https://mehmetozer.dev";
+const AUTHOR_URL = "https://github.com/Nestorservice";
 
 /** First run: finds Ollama / LM Studio on this Mac, or helps install Ollama and pull a model. */
 function LocalSetup({ onPick }: { onPick: (p: ProviderId, models: string[]) => void }) {
@@ -186,6 +186,7 @@ function LocalSetup({ onPick }: { onPick: (p: ProviderId, models: string[]) => v
 const AI_ROWS: { p: ProviderId; icon: IconName; color: string }[] = [
   { p: "ollama", icon: "lock", color: "var(--green)" },
   { p: "lmstudio", icon: "lock", color: "var(--green)" },
+  { p: "deepseek", icon: "spark", color: "#4d6bfe" },
   { p: "openai", icon: "spark", color: "var(--blue)" },
   { p: "anthropic", icon: "spark", color: "var(--orange)" },
   { p: "gemini", icon: "spark", color: "var(--purple)" },
@@ -228,7 +229,7 @@ function AiConfigSheet({ provider, models: found }: { provider: ProviderId; mode
   const mine = ai?.provider === provider ? ai : aiBackup?.provider === provider ? aiBackup : null;
   const isBackup = aiBackup?.provider === provider;
   const [baseURL, setBaseURL] = useState(mine?.baseURL ?? PROVIDERS[provider].baseURL);
-  const [model, setModel] = useState(mine?.model ?? (found.includes(RECOMMENDED_OLLAMA.model) ? RECOMMENDED_OLLAMA.model : found[0] ?? ""));
+  const [model, setModel] = useState(mine?.model ?? (found.includes(RECOMMENDED_OLLAMA.model) ? RECOMMENDED_OLLAMA.model : found[0] ?? PROVIDERS[provider].defaultModel ?? ""));
   const [key, setKeyState] = useState("");
   const [models, setModels] = useState(found);
   const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -428,7 +429,7 @@ export function Settings() {
         {!isCompanion && <VersionRow />}
       </div>
       <p className="muted small" style={{ textAlign: "center", marginTop: 8 }}>
-        {t("update.madeBy")} <a href={AUTHOR_URL} onClick={(e) => { e.preventDefault(); void openLink(AUTHOR_URL); }}>mehmetozer.dev</a>
+        {t("update.madeBy")} <a href={AUTHOR_URL} onClick={(e) => { e.preventDefault(); void openLink(AUTHOR_URL); }}>Toukea Pessong Nestor Corneille</a>
       </p>
     </>
   );

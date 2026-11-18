@@ -2,7 +2,7 @@
 name = "sprigo"
 version = "1.11.1"
 description = "Local-first AI language learning"
-authors = ["ozerozdas"]
+authors = ["Toukea Pessong Nestor Corneille (https://github.com/Nestorservice)"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for the report. Questions and setup help go to [Q&A](https://github.com/ozerozdas/sprigo/discussions/categories/q-a-help).
+        Thanks for the report. Questions and setup help go to [Q&A](https://github.com/Nestorservice/sprigo/discussions/categories/q-a-help).
   - type: textarea
     id: what
     attributes:

@@ -24,8 +24,8 @@
   },
   "bundle": {
     "active": true,
-    "publisher": "Mehmet Özer Özdaş",
-    "copyright": "© 2026 Mehmet Özer Özdaş",
+    "publisher": "Toukea Pessong Nestor Corneille",
+    "copyright": "© 2026 Toukea Pessong Nestor Corneille",
     "targets": "all",
     "icon": [
       "icons/32x32.png",
@@ -48,7 +48,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFENkZGREQ4QjFGODM2RkYKUldUL052aXgyUDF2clJRWWM1TFRtSlZJUFRkSlRpR2RyWkZsemlXZ3hDdlJZcThoYWJaQWltY2kK",
       "endpoints": [
-        "https://github.com/ozerozdas/sprigo/releases/latest/download/latest.json"
+        "https://github.com/Nestorservice/sprigo/releases/latest/download/latest.json"
       ]
     }
   }

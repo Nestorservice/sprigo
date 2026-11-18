@@ -7,15 +7,15 @@ import { useApp } from "./store";
 import { biomeVars } from "./biomes";
 import { mark } from "./latency";
 import { sfx } from "./Lesson";
-import { speak, speakingWith, stopSpeaking } from "./tts";
+import { speak, speakingWith, stopSpeaking, translateMode, whenOutputQuiet, SPEED, type TranslateMode } from "./tts";
 import { listen, sttReady, type Listener } from "./stt";
 import { FREE_CONTEXT, RECENT, baselineOf, learnerState, nextHint, summarize, type LearnerState, type Utterance } from "./speech";
 import { Face, type FaceState } from "./face/Face";
 import { Avatar } from "./screens/Profiles";
 import { CHARACTERS, type CharacterId } from "./characters";
-import { judge, learnerFacts, loadPractice, rememberSession, tutorTurn } from "./lessons";
+import { judge, learnerFacts, loadPractice, rememberSession, tutorTurn, unitWords } from "./lessons";
 import { warmUp } from "./ai";
-import { FILLER_MS, NOTES_MAX, currentUnit, filler, isNoise, mergeInput, partialSay, sentences, silenceDelay, type TutorEvent, type TutorMsg, type TutorReply } from "./tutor";
+import { FILLER_MS, NOTES_MAX, currentUnit, filler, firstClause, isNoise, mergeInput, partialSay, sentences, silenceDelay, type TutorEvent, type TutorMsg, type TutorReply } from "./tutor";
 import { recordSession, today, xpMult } from "./progress";
 import * as db from "./db";
 import { PracticePanel } from "./PracticePanel";
@@ -57,6 +57,8 @@ export function TutorCall({ who }: { who: CharacterId }) {
   const ring = useRef<HTMLElement>(null);
   const silence = useRef<ReturnType<typeof setTimeout>>(undefined);
   const started = useRef(Date.now());
+  const trMode = useRef<TranslateMode>("tap"); // loaded from settings; "auto" also reads each translation aloud
+  useEffect(() => { translateMode().then((m) => { trMode.current = m; }).catch(() => {}); }, []);
 
   const [msgs, setMsgs] = useState<TutorMsg[]>([]);
   const chat = useRef<HTMLDivElement>(null);
@@ -96,20 +98,23 @@ export function TutorCall({ who }: { who: CharacterId }) {
   };
 
   /** `started` gets the time the audio begins, or runs at the end if it never did. */
-  const voice = async (line: string, started?: (at: number) => void) => {
+  const voiceIn = async (line: string, l: string, started?: (at: number) => void, gap: "f" | "m" | undefined = ch.gender, kokoro: string | undefined = ch.kokoroVoice, speed?: number) => {
     if (!line.trim() || c.over) return;
     let fired = false;
     const go = (at = performance.now()) => { if (!fired) { fired = true; setEngine(speakingWith() ?? ""); started?.(at); } };
     c.speaking = true; mic.current?.pause(s.bargeIn); setTalking(true); // the mic would hear the tutor; with barge-in it only listens harder
-    try { await speak(line, lang, { gender: ch.gender, kokoro: ch.kokoroVoice }, go); } catch { /* the caption still shows it */ }
+    try { await speak(line, l, gap ? { gender: gap, kokoro } : undefined, go, speed); } catch { /* the caption still shows it */ }
     finally {
       go();
       c.speaking = false; setTalking(false);
-      // The speakers are still ringing out when playback ends: resumed at once, the mic heard the tutor's last words
-      // as the learner's (a second "hello"). ponytail: fixed 400 ms, measure the output latency if a headset still echoes.
-      setTimeout(() => { if (!c.speaking) mic.current?.resume(); }, 400);
+      // The speakers are still ringing out when playback ends. Wait for the output to actually fall quiet (instead of
+      // guessing 400 ms), so the mic does not hear the tutor's last words as the learner's.
+      void (async () => { await whenOutputQuiet(); if (!c.speaking) mic.current?.resume(); })();
     }
   };
+  const voice = (line: string, started?: (at: number) => void) => voiceIn(line, lang, started);
+  /** A translation is read in the learner's own language, with that language's voice. */
+  const voiceNative = (line: string) => voiceIn(line, profile?.native_lang ?? "en", undefined, undefined, undefined);
 
   /** Speaks a reply's sentences as they stream in (SPR-13): the first at once, the ones that came meanwhile as one piece.
    *  The caption grows as each piece starts playing. A filler (SPR-16) plays only before the first sentence, and the reply
@@ -132,6 +137,13 @@ export function TutorCall({ who }: { who: CharacterId }) {
     return {
       add: (line: string) => { if (cut) return; q.push(line); busy ??= drain(); },
       filler: (line: string) => { if (!busy && at < 0 && !cut) busy = voice(line).then(drain); },
+      /** Attaches the reply's translation to the caption it belongs to (the model only sends it at the end). */
+      translate: (tr: string) => {
+        if (at < 0 || !tr.trim()) return;
+        c.hist = c.hist.map((m, i) => (i === at ? { ...m, translation: tr.trim() } : m));
+        setMsgs(c.hist);
+      },
+      wasCut: () => cut,
       end: () => busy ?? Promise.resolve(),
     };
   };
@@ -148,7 +160,11 @@ export function TutorCall({ who }: { who: CharacterId }) {
     const onText = (raw: string) => {
       if (c.over) return false;
       const p = partialSay(raw), got = sentences(p.text, p.closed);
-      for (; n < got.length; n++) { if (!n) mark("say"); sp.add(got[n]); }
+      for (; n < got.length; n++) {
+        if (!n) { const parts = firstClause(got[n]); if (parts) { sp.add(parts[0]); sp.add(parts[1]); } else sp.add(got[n]); }
+        else sp.add(got[n]);
+        if (!n) mark("say");
+      }
       if (n) clearTimeout(slow);
       return n > 0;
     };
@@ -167,6 +183,7 @@ export function TutorCall({ who }: { who: CharacterId }) {
       if (r.correction.trim()) c.fixes.push(r.correction.trim());
       sentences(r.say, true).slice(n).forEach(sp.add); // the tail, or all of it if `say` came last
       setLast(r); setShowTr(false); setThinking(false);
+      sp.translate(r.translation);
       if (r.action === "start_practice") practiceOpen(false);
       if (r.action === "stop_practice") practiceClose();
       // `answer` only relays what the learner said; on app events the model sometimes invents a "next" and skips a step.
@@ -175,6 +192,8 @@ export function TutorCall({ who }: { who: CharacterId }) {
       const moveOn = a.toLowerCase() === "next";
       if (a && !moveOn) answerField(a);
       await sp.end();
+      // Spoken translation: read the line in the learner's language too, unless they interrupted it.
+      if (trMode.current === "auto" && !sp.wasCut() && r.translation.trim() && !c.over) await voiceNative(r.translation);
       if (moveOn && c.pr === screen) answerField(a); // after the tutor has closed the step, not while it is still talking about it
       // The tutor has announced the reading; the app reads it aloud, then the tutor asks if it was understood.
       if (e.kind === "practice_item" && screen?.stage === "reading" && c.pr === screen && screen.set) { await voice(screen.set.reading.text); fire({ kind: "practice_read" }); }
@@ -280,7 +299,7 @@ export function TutorCall({ who }: { who: CharacterId }) {
         },
         level: (r) => ring.current?.style.setProperty("--level", String(Math.min(1, r * 10))),
         error: (x) => { toast(x.message); if (!c.running) armSilence(); },
-      }, s.speechOn ? profile?.native_lang : undefined); // voice analysis off: nothing measured, saved or adapted to
+      }, s.speechOn ? profile?.native_lang : undefined, unit ? unitWords(unit) : []); // voice analysis off: nothing measured, saved or adapted to
       if (c.over) return void m.stop();
       if (c.speaking) m.pause(s.bargeIn); // turned on mid-speech: the tutor's voice would be heard
       mic.current = m; c.micOn = true; setMicOn(true);
@@ -372,7 +391,13 @@ export function TutorCall({ who }: { who: CharacterId }) {
           {talking && engine && <small className="muted small" role="status">{t("ai.speakingWith", { engine: t(`voice.engine.${engine}`) })}</small>}
           {last?.correction.trim() && <p className="call-fix small"><Icon name="spark" /> {last.correction}</p>}
           {captions && lastTutor && <div className="call-transcript" lang={lang} aria-live="polite">
-            <button className="call-line" onClick={() => setShowTr((v) => !v)}><Words text={lastTutor.text} lang={lang} />{showTr && last?.translation && <small>{last.translation}</small>}</button>
+            <button className="call-line" onClick={() => setShowTr((v) => !v)}><Words text={lastTutor.text} lang={lang} />{showTr && lastTutor.translation && <small>{lastTutor.translation}</small>}</button>
+            <div className="call-tools">
+              <button className="icon-btn" aria-label={t("voice.replaySlow")} data-tip={t("voice.replaySlow")}
+                onClick={() => voiceIn(lastTutor.text, lang, undefined, ch.gender, ch.kokoroVoice, SPEED.slow)}><Icon name="refresh" /></button>
+              {lastTutor.translation && <button className="icon-btn" aria-label={t("voice.playTranslation")} data-tip={t("voice.playTranslation")}
+                onClick={() => voiceNative(lastTutor.translation!)}><Icon name="headphones" /></button>}
+            </div>
           </div>}
         </section>
         <section className="call-pane me" ref={ring} aria-label={profile?.name}>
@@ -403,6 +428,7 @@ export function TutorCall({ who }: { who: CharacterId }) {
       <div className="call-bar" style={enrollment ? biomeVars(enrollment.level) : undefined}>
         <button className={`call-btn${drawer ? " on" : ""}`} onClick={() => setDrawer((d) => !d)} aria-pressed={drawer} aria-expanded={drawer} aria-label={t("tutor.message")} data-tip={t("tutor.message")}><Icon name="chat" /></button>
         <button className={`call-btn${captions ? " on" : ""}`} onClick={() => setCaptions((v) => !v)} aria-pressed={captions} aria-label={capLabel} data-tip={capLabel}><Icon name="captions" /></button>
+        {lastTutor?.translation && <button className="call-btn" onClick={() => voiceNative(lastTutor.translation!)} aria-label={t("voice.playTranslation")} data-tip={t("voice.playTranslation")}><Icon name="headphones" /></button>}
         <button className={`call-btn${pr ? " on" : ""}`} onClick={() => (pr ? practiceClose() : practiceOpen(true))} aria-pressed={!!pr} aria-label={prLabel} data-tip={prLabel}><Icon name="book" /></button>
         <button className={`call-btn${micOn ? " on" : " off"}`} disabled={!!micBlock} onClick={toggleMic} aria-pressed={micOn} aria-label={micLabel} data-tip={micBlock ? t(micBlock) : micLabel}><Icon name="mic" /></button>
         <button className={`call-btn${camOn ? " on" : " off"}`} disabled={!camOk} onClick={toggleCam} aria-pressed={camOn} aria-label={camLabel} data-tip={camOk ? camLabel : t("tutor.camDenied")}><Icon name="video" /></button>

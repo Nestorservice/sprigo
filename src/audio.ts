@@ -42,7 +42,7 @@ export function mouthBright(prev: number, rate: number, dt: number): number {
 /** Voice detector knobs (tutor call). RMS is after the browser's noise suppression; raise `threshold` if a noisy room keeps triggering it.
  *  `endMs` is added to every turn's wait (SPR-15: 1200 → 800). ponytail: one value; a "wait for me: short/normal/long"
  *  setting if learners who pause mid-sentence get cut off. */
-export const VAD = { threshold: 0.015, startMs: 150, endMs: 800, maxMs: 15000 };
+export const VAD = { threshold: 0.015, startMs: 150, endMs: 800, maxMs: 30000 };
 export type Vad = { speaking: boolean; voiced: number; quiet: number; length: number };
 export type VadEvent = "start" | "end" | null;
 export const VAD_IDLE: Vad = { speaking: false, voiced: 0, quiet: 0, length: 0 };
@@ -59,6 +59,14 @@ export function vadStep(v: Vad, level: number, ms: number, k = VAD): [Vad, VadEv
 }
 
 export const rms = (d: Float32Array) => Math.sqrt(d.reduce((s, x) => s + x * x, 0) / (d.length || 1));
+
+/** A voice-detection threshold above the room's noise floor: the quieter quarter of the first frames × 2.5,
+ *  capped so that a learner who starts talking immediately is still heard, and never below `base`. */
+export function noiseThreshold(frames: Float32Array[], base = VAD.threshold): number {
+  if (!frames.length) return base;
+  const levels = frames.map(rms).sort((a, b) => a - b);
+  return Math.min(0.06, Math.max(base, levels[Math.floor(levels.length / 4)] * 2.5));
+}
 
 export function concat(parts: Float32Array[]): Float32Array {
   const all = new Float32Array(parts.reduce((n, c) => n + c.length, 0));

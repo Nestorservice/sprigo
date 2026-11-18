@@ -3,7 +3,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "../store";
 import { getSetting, isCompanion, isTauri, setSetting } from "../db";
-import { elevenVoice, getElevenKey, loadKokoro, loadPiper, localTts, sayWithEleven, sayWithLocal, setElevenKey, speak, speakingWith, TTS_KEY, ttsProvider, ttsSpeaks, useTtsPreparing, ACCENTS, SPEED, ttsAccent, ttsSpeed, type TtsProvider } from "../tts";
+import { elevenVoice, getElevenKey, loadKokoro, loadPiper, localTts, sayWithEleven, sayWithLocal, setElevenKey, speak, speakingWith, TTS_KEY, ttsProvider, ttsSpeaks, useTtsPreparing, ACCENTS, SPEED, ttsAccent, ttsSpeed, translateMode, type TranslateMode, type TtsProvider } from "../tts";
 import { ELEVEN_VOICES, LOCAL_TTS } from "../ttsCloud";
 import { Icon } from "../icons";
 import { HelpButton } from "../Help";
@@ -78,6 +78,7 @@ function TtsSheet({ initial, onChange }: { initial: TtsProvider; onChange: (v: T
   const [hasKey, setHasKey] = useState(false);
   const [hasLocal, setHasLocal] = useState(false); // a local server was set up once
   const [speed, setSpeed] = useState(1);
+  const [trMode, setTrMode] = useState<TranslateMode>("tap");
   const accents = ACCENTS[lang.slice(0, 2)];
   const [accent, setAccent] = useState<string | undefined>();
   useEffect(() => {
@@ -85,8 +86,10 @@ function TtsSheet({ initial, onChange }: { initial: TtsProvider; onChange: (v: T
     getSetting("tts.local").then((x) => setHasLocal(!!x));
     ttsSpeed().then(setSpeed);
     ttsAccent(lang).then(setAccent);
+    translateMode().then(setTrMode);
   }, []);
   const pickSpeed = (x: number) => { setSpeed(x); setSetting("tts.speed", x === 1 ? null : String(x)); };
+  const pickTr = (m: TranslateMode) => { setTrMode(m); void setSetting("tts.translate", m === "tap" ? null : m); };
   // Piper has a voice per accent: download it now, like picking Piper does.
   const pickAccent = async (a: string) => {
     if (pct !== null) return;
@@ -141,6 +144,17 @@ function TtsSheet({ initial, onChange }: { initial: TtsProvider; onChange: (v: T
         <span className="small"><b>{t("voice.speed")}</b> <span className="muted">{speed.toFixed(1)}×</span></span>
         <input type="range" min={SPEED.min} max={SPEED.max} step={0.1} value={speed} onChange={(e) => pickSpeed(Number(e.target.value))} />
       </label>
+      <div className="od-stack" style={gap("6px")}>
+        <span id="tts-translate" className="small"><b>{t("voice.translate")}</b></span>
+        <div className="seg" role="radiogroup" aria-labelledby="tts-translate">
+          {(["off", "tap", "auto"] as const).map((m) => (
+            <button key={m} role="radio" aria-checked={trMode === m} className={`btn ${trMode === m ? "btn-blue" : "btn-ghost"}`} onClick={() => pickTr(m)}>
+              {t(`voice.translate_${m}`)}
+            </button>
+          ))}
+        </div>
+        <span className="muted small">{t("voice.translateDesc")}</span>
+      </div>
       {accents && (
         <div className="od-stack" style={gap("6px")}>
           <span id="tts-accent" className="small"><b>{t("voice.accent")}</b></span>
@@ -306,7 +320,12 @@ function SttSheet({ initial, onChange }: { initial: SttProvider; onChange: (v: S
   const { toast, openSheet, closeSheet } = useApp();
   const [v, setV] = useState(initial);
   const [hasKey, setHasKey] = useState(false);
-  useEffect(() => { getDeepgramKey().then((k) => setHasKey(!!k)).catch(() => {}); }, []);
+  const [pauseMs, setPauseMs] = useState(800);
+  useEffect(() => {
+    getDeepgramKey().then((k) => setHasKey(!!k)).catch(() => {});
+    getSetting("stt.endMs").then((x) => setPauseMs(Number(x) || 800));
+  }, []);
+  const pickPause = (ms: number) => { setPauseMs(ms); void setSetting("stt.endMs", ms === 800 ? null : String(ms)); };
   const back = () => openSheet(<SttSheet initial={v} onChange={onChange} />);
   const configure = () => openSheet(<DeepgramSheet onSaved={() => { onChange("deepgram"); openSheet(<SttSheet initial="deepgram" onChange={onChange} />); }} onCancel={back} />);
   const pick = async (next: SttProvider) => {
@@ -332,6 +351,17 @@ function SttSheet({ initial, onChange }: { initial: SttProvider; onChange: (v: S
             <InfoTip label={t("voice.about", { name: p === "deepgram" ? "Deepgram" : "Whisper" })}>{t(p === "deepgram" ? "voice.deepgramDesc" : "voice.whisperDesc")}</InfoTip>
           </div>
         ))}
+      </div>
+      <div className="od-stack" style={gap("6px")}>
+        <span id="stt-pause" className="small"><b>{t("voice.pause")}</b></span>
+        <div className="seg" role="radiogroup" aria-labelledby="stt-pause">
+          {([[500, "pauseShort"], [800, "pauseNormal"], [1200, "pauseLong"]] as const).map(([ms, k]) => (
+            <button key={ms} role="radio" aria-checked={pauseMs === ms} className={`btn ${pauseMs === ms ? "btn-blue" : "btn-ghost"}`} onClick={() => pickPause(ms)}>
+              {t(`voice.${k}`)}
+            </button>
+          ))}
+        </div>
+        <span className="muted small">{t("voice.pauseDesc")}</span>
       </div>
       <div className="od-stack sheet-actions" style={gap("8px")}>
         <button className="btn btn-blue btn-block" onClick={() => openSheet(<SttTrySheet provider={v} onBack={back} />)}><Icon name="mic" /> {t("voice.try")}</button>

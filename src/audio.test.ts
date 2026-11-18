@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { VAD_IDLE, concat, mouthBright, mouthLevel, remember, resample, rms, vadStep, zcr, type VadEvent } from "./audio.ts";
+import { VAD_IDLE, concat, mouthBright, mouthLevel, noiseThreshold, remember, resample, rms, vadStep, zcr, type VadEvent } from "./audio.ts";
 
 test("resample keeps duration and interpolates", () => {
   const one = new Float32Array(48000).map((_, i) => i / 48000);
@@ -8,6 +8,16 @@ test("resample keeps duration and interpolates", () => {
   assert.equal(out.length, 16000);
   assert.ok(Math.abs(out[8000] - 0.5) < 1e-3);
   assert.equal(resample(one, 16000), one);
+});
+
+test("noiseThreshold sits above the room's quiet floor and never below the base", () => {
+  assert.equal(noiseThreshold([]), 0.015);
+  const quiet = [0, 1, 2].map(() => new Float32Array(100));
+  assert.equal(noiseThreshold(quiet), 0.015);
+  const room = [0.02, 0.02, 0.02].map((x) => new Float32Array(100).fill(x));
+  assert.ok(noiseThreshold(room) > 0.04);
+  const startsTalking = [0.1, 0.1, 0.1, 0.1].map((x) => new Float32Array(100).fill(x));
+  assert.ok(noiseThreshold(startsTalking) <= 0.06); // a learner who speaks at once is not filtered out
 });
 
 test("remember keeps the newest entries", () => {
@@ -50,9 +60,10 @@ test("vadStep ignores short noise, starts after 150 ms of sound and ends after 0
   assert.deepEqual(vad([...loud(3), ...quiet(16)]), ["start", "end"]);
 });
 
-test("vadStep: a short pause does not split an utterance, 15 s is the cap", () => {
+test("vadStep: a short pause does not split an utterance, 30 s is the cap", () => {
   assert.deepEqual(vad([...loud(3), ...quiet(10), ...loud(3), ...quiet(16)]), ["start", "end"]); // 500 ms pause
-  assert.deepEqual(vad(loud(300)), ["start", "end"]);
+  assert.deepEqual(vad(loud(300)), ["start"]); // 15 s: a long sentence is still going
+  assert.deepEqual(vad(loud(600)), ["start", "end"]);
 });
 
 test("rms and concat", () => {

@@ -473,6 +473,20 @@ button.bubble:hover{border-color:var(--blue)}
 .bubble .voicing svg{width:16px;height:16px}
 .bubble.typing{color:var(--text-muted);letter-spacing:3px}
 .story-line{max-width:100%}
+/* Spoken translation and slow replay next to a line, without nesting buttons inside the bubble button. */
+.bubble-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:4px;max-width:85%}
+.bubble-wrap .bubble{max-width:100%}
+.bubble-tools{display:flex;gap:2px;padding-left:4px}
+.bubble-tools .icon-btn{width:32px;height:32px;opacity:.7}
+.bubble-tools .icon-btn:hover{opacity:1}
+.story-line-row{display:flex;align-items:flex-start;gap:6px;max-width:100%}
+.story-line-row .story-line{flex:1;min-width:0}
+.story-tools{display:flex;flex-direction:column;gap:2px;padding-top:8px}
+.story-tools .icon-btn{width:32px;height:32px;opacity:.7}
+.story-tools .icon-btn:hover{opacity:1}
+.call-tools{display:flex;justify-content:flex-end;gap:2px;margin-top:2px}
+.call-tools .icon-btn{width:30px;height:30px;color:#fff;opacity:.8}
+.call-tools .icon-btn:hover{opacity:1}
 
 /* Guidebook sheet (DECISIONS B8; not in the design) */
 .sheet:has(.guide){max-width:620px;text-align:left}

@@ -715,6 +715,8 @@
     "ollamaInfo": "Ejecuta los modelos en este Mac: tus lecciones quedan sin conexión y privadas. La app Ollama debe estar instalada y abierta; sus modelos en la nube (nombres con :cloud) también sirven.",
     "lmstudioGood": "Gratis y local; gestiona los modelos en una app visual.",
     "lmstudioInfo": "Se conecta al servidor local de LM Studio. Carga primero un modelo en LM Studio e inicia su servidor.",
+    "deepseekGood": "Modelos en la nube rápidos, mucho más baratos que la mayoría; requiere clave de API.",
+    "deepseekInfo": "Los modelos DeepSeek escriben tus lecciones y chats. Las solicitudes van a DeepSeek y se cobran por uso en tu clave de API. deepseek-chat es la opción rápida; deepseek-reasoner piensa más antes de responder.",
     "openaiGood": "Modelos en la nube rápidos y potentes; necesita una clave API de pago.",
     "openaiInfo": "Los modelos GPT escriben tus lecciones y chats. Las solicitudes van a OpenAI y se cobran por uso.",
     "anthropicGood": "Modelos Claude; conversación natural y explicaciones claras.",
@@ -753,7 +755,7 @@
     "install": "Actualizar y reiniciar",
     "later": "Más tarde",
     "downloading": "Descargando… {{pct}}%",
-    "madeBy": "Desarrollado por Mehmet Özer Özdaş ·",
+    "madeBy": "Desarrollado por Toukea Pessong Nestor Corneille ·",
     "whatsNew": "Novedades de Sprigo {{version}}",
     "gotIt": "Entendido"
   },
@@ -819,6 +821,18 @@
     "localModel": "Modelo",
     "localVoice": "Voz",
     "speed": "Velocidad",
+    "translate": "Traducción hablada",
+    "translateDesc": "Después de una frase del tutor, lee su traducción en tu idioma. Al tocar: solo cuando pulsas el botón de traducción.",
+    "translate_off": "Desactivada",
+    "translate_tap": "Al tocar",
+    "translate_auto": "Siempre",
+    "playTranslation": "Escuchar la traducción",
+    "replaySlow": "Repetir despacio",
+    "pause": "Pausa antes de que responda el tutor",
+    "pauseDesc": "Cuánto espera Sprigo después de que dejas de hablar. Auméntala si cortan tus frases.",
+    "pauseShort": "Corta",
+    "pauseNormal": "Normal",
+    "pauseLong": "Larga",
     "accent": "Acento",
     "accent_en-US": "Estadounidense",
     "accent_en-GB": "Británico"
@@ -1018,7 +1032,7 @@
     "topics": {
       "ai": {
         "q": "¿Cómo configuro la IA?",
-        "a": "Sprigo necesita un modelo de lenguaje para escribir las lecciones. Lo más fácil es Ollama: instálalo y abre Sprigo; lo encuentra y te ofrece descargar qwen3:8b (unos 5,2 GB). LM Studio también sirve: inicia su servidor local y carga un modelo.\n¿Sin modelo local? Usa un proveedor en la nube (OpenAI, Anthropic, Gemini, OpenRouter) con tu propia clave de API. Las claves se guardan en el llavero del sistema.\nCámbialo en Ajustes → IA y voz → Proveedor de IA."
+        "a": "Sprigo necesita un modelo de lenguaje para escribir las lecciones. Lo más fácil es Ollama: instálalo y abre Sprigo; lo encuentra y te ofrece descargar qwen3:8b (unos 5,2 GB). LM Studio también sirve: inicia su servidor local y carga un modelo.\n¿Sin modelo local? Usa un proveedor en la nube (OpenAI, Anthropic, Gemini, OpenRouter, DeepSeek) con tu propia clave de API. Las claves se guardan en el llavero del sistema.\nCámbialo en Ajustes → IA y voz → Proveedor de IA."
       },
       "aiConnect": {
         "q": "«No se encontró un modelo local» o «No se pudo conectar»",
