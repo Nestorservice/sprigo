@@ -9,7 +9,7 @@ on:
 
 jobs:
   beta:
-    if: github.event.release.tag_name != 'updater-beta'
+    if: github.event.release.tag_name != 'updater-beta' && startsWith(github.event.release.tag_name, 'v')
     permissions:
       contents: write
     runs-on: ubuntu-latest

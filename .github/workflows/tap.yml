@@ -9,7 +9,7 @@ on:
 
 jobs:
   bump-cask:
-    if: ${{ !github.event.release.prerelease }} # betas and the updater-beta channel stay out of Homebrew
+    if: ${{ !github.event.release.prerelease && startsWith(github.event.release.tag_name, 'v') }} # betas, updater-beta and Windows-only test builds stay out of Homebrew
     runs-on: ubuntu-latest
     steps:
       - name: Update Casks/sprigo.rb

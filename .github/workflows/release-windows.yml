@@ -1,0 +1,65 @@
+# Windows-only test build: publishes the NSIS installer (.exe) to a GitHub release.
+# Push a tag like `win-v1.12.0`, or run it manually from the Actions tab.
+# The tag deliberately does not start with `v`: the cross-platform release.yml only handles `v*`,
+# and channel.yml/tap.yml only handle real `v*` releases.
+name: release-windows
+
+on:
+  push:
+    tags: ["win-v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. win-v1.12.0)"
+        required: true
+        default: "win-v1.12.0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: pnpm install --frozen-lockfile
+      - name: Whisper model
+        shell: bash
+        run: pnpm fetch-model
+
+      - uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
+          releaseName: "Sprigo 1.12.0 — Windows test build"
+          releaseBody: |
+            Windows installer (NSIS) for Sprigo 1.12.0.
+
+            Built from the `deepseek-bilingual-voice` branch. The installer is unsigned:
+            Windows SmartScreen may ask you to click **More info → Run anyway**.
+
+            This is a test build, so it is marked as a pre-release and does not become the
+            "latest" release used by the in-app updater.
+          releaseDraft: false
+          prerelease: true
+          # No signing key on this fork: skip latest.json and .sig uploads.
+          uploadUpdaterJson: false
+          uploadUpdaterSignatures: false
+          args: --bundles nsis --config .github/tauri.ci.conf.json
