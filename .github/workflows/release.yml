@@ -51,6 +51,9 @@ jobs:
           - platform: windows-latest
             args: ""
     runs-on: ${{ matrix.platform }}
+    env:
+      # Keep whisper.cpp portable: -march=native on a runner with AVX-512 crashes on older CPUs.
+      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/.github/cmake/ggml-generic.toolchain.cmake
     steps:
       - uses: actions/checkout@v7
 

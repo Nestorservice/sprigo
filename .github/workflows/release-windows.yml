@@ -24,6 +24,10 @@ concurrency:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      # See .github/cmake/ggml-generic.toolchain.cmake: without this, whisper.cpp is built
+      # with AVX-512 and crashes on older CPUs.
+      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/.github/cmake/ggml-generic.toolchain.cmake
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -48,15 +52,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
-          releaseName: "Sprigo 1.12.0 — Windows test build"
+          releaseName: "Sprigo (Windows) ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}"
           releaseBody: |
-            Windows installer (NSIS) for Sprigo 1.12.0.
+            Windows installer (NSIS) for Sprigo 1.12.1.
 
-            Built from the `deepseek-bilingual-voice` branch. The installer is unsigned:
-            Windows SmartScreen may ask you to click **More info → Run anyway**.
+            - Fixes the 1.12.0 desktop crash on CPUs without AVX-512 (illegal instruction
+              when Whisper starts in a live call): whisper.cpp is now built portably.
+            - Mobile layout: long text wraps and the live-call controls stay on screen.
 
-            This is a test build, so it is marked as a pre-release and does not become the
-            "latest" release used by the in-app updater.
+            The installer is unsigned: Windows SmartScreen may ask you to click
+            **More info → Run anyway**. Marked as a pre-release, so it does not become
+            the "latest" release used by the in-app updater.
           releaseDraft: false
           prerelease: true
           # No signing key on this fork: skip latest.json and .sig uploads.

@@ -719,3 +719,37 @@ html[data-theme="dark"] .garden-hero{background:var(--btd)}
 .ctx-cells span+span{border-inline-start:2px solid var(--border)}
 .ctx-cells span{display:flex;flex-direction:column;gap:2px}
 .ctx-cells small{font-size:12px;font-weight:600}
+
+/* Phones: long course text wraps, and the live-call bar stays inside the screen. */
+@media (max-width: 767px) {
+  .bubble, .bubble-wrap, .call-line, .call-transcript, .call-fix, .practice-text p,
+  .practice-questions, .voice-option, .voice-option .od-field, .guide-status small,
+  .stt-heard, .help-answer, .card, .ex-title, .ex-sub, .prompt-word, .word-chip {
+    overflow-wrap: anywhere;
+  }
+  .call-bar { max-width: 100%; gap: 6px; row-gap: 6px; padding-inline: 4px; justify-content: center; flex-wrap: wrap; }
+  .call-btn { width: 44px; height: 44px; }
+  .call-btn svg { width: 22px; height: 22px; }
+  .lesson-footer { padding-inline: 8px; }
+  .lesson-top { padding-inline: 12px; gap: 10px; }
+  .lesson-body { padding: 12px; }
+  .call-transcript { left: 8px; right: 8px; bottom: 8px; padding: 10px 12px; }
+  .call-fix { max-width: 70%; }
+  .call-drawer { right: 8px; bottom: 8px; width: calc(100% - 16px); }
+  .card.od-row { flex-wrap: wrap; }
+  .card.od-row > .btn, .card.od-row > .icon-btn { flex: none; }
+  .voice-option { min-width: 0; }
+  .voice-option > button[role=radio] { min-width: 0; padding: 10px 8px; }
+  .voice-option > button[role=radio] .od-field { min-width: 0; }
+  .voice-option > button[role=radio] .od-field b,
+  .voice-option > button[role=radio] .od-field span { overflow-wrap: anywhere; }
+  .story-tools { flex-direction: row; padding-top: 0; }
+  .bubble-wrap { max-width: 92%; }
+  .seg .btn { flex: 1 1 auto; }
+}
+
+@media (max-width: 767px) {
+  /* Three short choices (translation mode, end-of-turn pause) stay on one line. */
+  [aria-labelledby="tts-translate"], [aria-labelledby="stt-pause"] { flex-wrap: nowrap; }
+  [aria-labelledby="tts-translate"] .btn, [aria-labelledby="stt-pause"] .btn { flex: 1 1 0; min-width: 0; padding-inline: 6px; font-size: 13px; }
+}
