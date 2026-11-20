@@ -26,6 +26,8 @@ dist-ssr
 # Whisper model (scripts/fetch-model.sh)
 src-tauri/resources/*.bin
 src-tauri/resources/*.part
+# VC++ runtime DLLs copied by CI into the Windows installer
+src-tauri/windows/vc-runtime/
 .serena
 
 # Lesson eval reports (pnpm eval)

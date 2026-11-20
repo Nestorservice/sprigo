@@ -47,6 +47,16 @@ jobs:
         shell: bash
         run: pnpm fetch-model
 
+      - name: Bundle VC++ runtime
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force "src-tauri/windows/vc-runtime" | Out-Null
+          foreach ($dll in @("msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll", "concrt140.dll")) {
+            $src = Join-Path $env:WINDIR "System32/$dll"
+            if (Test-Path $src) { Copy-Item $src "src-tauri/windows/vc-runtime/$dll" -Force }
+          }
+          if (-not (Test-Path "src-tauri/windows/vc-runtime/msvcp140.dll")) { throw "msvcp140.dll not found on this runner" }
+
       - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -54,8 +64,10 @@ jobs:
           tagName: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
           releaseName: "Sprigo (Windows) ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}"
           releaseBody: |
-            Windows installer (NSIS) for Sprigo 1.12.1.
+            Windows installer (NSIS) for Sprigo 1.12.2.
 
+            - Bundles the Visual C++ runtime DLLs next to sprigo.exe, so the app no
+              longer fails with "MSVCP140.dll introuvable" on a fresh Windows install.
             - Fixes the 1.12.0 desktop crash on CPUs without AVX-512 (illegal instruction
               when Whisper starts in a live call): whisper.cpp is now built portably.
             - Mobile layout: long text wraps and the live-call controls stay on screen.
